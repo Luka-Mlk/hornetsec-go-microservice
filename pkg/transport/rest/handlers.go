@@ -4,6 +4,8 @@ import (
 	"document-metadata/pkg/document"
 	"encoding/json"
 	"net/http"
+
+	"github.com/k0kubun/pp"
 )
 
 // Keeping dto's in handler file for the sake of keeping things simple by go standard
@@ -11,6 +13,8 @@ type CreateRequest struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 }
+
+type MiddlewareFunc func(next http.Handler) http.Handler
 
 type Handler struct {
 	mgr *document.Manager
@@ -27,7 +31,12 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("DELETE /api/v1/documents/{id}", h.delete)
 }
 
+func (h *Handler) Use(mux *http.ServeMux, mf MiddlewareFunc) http.Handler {
+	return mf(mux)
+}
+
 func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
+	pp.Println(r.Context().Value("X-Request-ID"))
 	var req CreateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "invalid request body", http.StatusBadRequest)
@@ -44,6 +53,7 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) list(w http.ResponseWriter, r *http.Request) {
+	pp.Println(r.Context().Value("X-Request-ID"))
 	doc, err := h.mgr.FindAll()
 	if err != nil {
 		http.Error(w, "internal server error", http.StatusInternalServerError)

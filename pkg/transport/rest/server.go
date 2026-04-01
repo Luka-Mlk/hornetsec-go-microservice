@@ -14,13 +14,15 @@ import (
 
 func Run(ctx context.Context, wg *sync.WaitGroup, errChan chan<- error, mgr *document.Manager) {
 	defer wg.Done()
-	handler := NewHandler(mgr)
 	mux := http.NewServeMux()
-	handler.RegisterRoutes(mux)
+	h := NewHandler(mgr)
+	h.RegisterRoutes(mux)
+
+	handlers := h.Use(mux, WithRequestID)
 
 	srv := &http.Server{
 		Addr:    ":8080",
-		Handler: mux,
+		Handler: handlers,
 	}
 
 	pp.Println("[REST] started")

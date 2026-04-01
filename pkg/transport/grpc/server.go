@@ -21,7 +21,9 @@ func Run(ctx context.Context, wg *sync.WaitGroup, errChan chan<- error, mgr *doc
 		return
 	}
 	handler := NewHandler(mgr)
-	srv := grpc.NewServer()
+	srv := grpc.NewServer(
+		grpc.UnaryInterceptor(RequestIDInterceptor),
+	)
 	pb.RegisterDocumentServiceServer(srv, handler)
 	reflection.Register(srv)
 	pp.Println("[GRPC] started")
