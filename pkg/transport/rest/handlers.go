@@ -1,11 +1,15 @@
 package rest
 
 import (
+	"document-metadata/pkg/constants"
 	"document-metadata/pkg/document"
 	"encoding/json"
 	"net/http"
+)
 
-	"github.com/k0kubun/pp"
+const (
+	apiRoot         = "/api/v1/documents"
+	apiDocumentByID = "/api/v1/documents/{id}"
 )
 
 // Keeping dto's in handler file for the sake of keeping things simple by go standard
@@ -25,10 +29,10 @@ func NewHandler(mgr *document.Manager) *Handler {
 }
 
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("POST /api/v1/documents", h.create)
-	mux.HandleFunc("GET /api/v1/documents/", h.list)
-	mux.HandleFunc("GET /api/v1/documents/{id}", h.get)
-	mux.HandleFunc("DELETE /api/v1/documents/{id}", h.delete)
+	mux.HandleFunc("POST "+apiRoot, h.create)
+	mux.HandleFunc("GET "+apiRoot, h.list)
+	mux.HandleFunc("GET "+apiDocumentByID, h.get)
+	mux.HandleFunc("DELETE "+apiDocumentByID, h.delete)
 }
 
 func (h *Handler) Use(mux *http.ServeMux, mf MiddlewareFunc) http.Handler {
@@ -36,7 +40,6 @@ func (h *Handler) Use(mux *http.ServeMux, mf MiddlewareFunc) http.Handler {
 }
 
 func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
-	pp.Println(r.Context().Value("X-Request-ID"))
 	var req CreateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "invalid request body", http.StatusBadRequest)
@@ -47,19 +50,18 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "failed to create document", http.StatusInternalServerError)
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", constants.HeaderContentTypeApplicationJson)
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(doc)
 }
 
 func (h *Handler) list(w http.ResponseWriter, r *http.Request) {
-	pp.Println(r.Context().Value("X-Request-ID"))
 	doc, err := h.mgr.FindAll()
 	if err != nil {
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", constants.HeaderContentTypeApplicationJson)
 	json.NewEncoder(w).Encode(doc)
 }
 
@@ -70,7 +72,7 @@ func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "document not found", http.StatusNotFound)
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", constants.HeaderContentTypeApplicationJson)
 	json.NewEncoder(w).Encode(doc)
 }
 

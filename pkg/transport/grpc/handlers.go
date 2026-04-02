@@ -1,4 +1,3 @@
-// pkg/transport/grpc/handlers.go
 package grpc
 
 import (
@@ -6,7 +5,6 @@ import (
 	pb "document-metadata/gen/proto/document"
 	"document-metadata/pkg/document"
 
-	"github.com/k0kubun/pp"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -22,7 +20,6 @@ func NewHandler(mgr *document.Manager) *Handler {
 }
 
 func (h *Handler) Create(ctx context.Context, req *pb.CreateRequest) (*pb.Document, error) {
-	pp.Println(ctx.Value("X-Request-ID"))
 	doc, err := h.mgr.Create(req.Name, req.Description)
 	if err != nil {
 		return nil, status.Error(codes.Internal, "failed to create document")
@@ -35,7 +32,6 @@ func (h *Handler) Create(ctx context.Context, req *pb.CreateRequest) (*pb.Docume
 }
 
 func (h *Handler) List(ctx context.Context, req *emptypb.Empty) (*pb.DocumentList, error) {
-	pp.Println(ctx.Value("X-Request-ID"))
 	doc, err := h.mgr.FindAll()
 	if err != nil {
 		return nil, status.Error(codes.Internal, "internal server error")

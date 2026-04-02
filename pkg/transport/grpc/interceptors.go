@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"document-metadata/pkg/constants"
 
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
@@ -12,15 +13,15 @@ func RequestIDInterceptor(ctx context.Context, req any, info *grpc.UnaryServerIn
 	md, ok := metadata.FromIncomingContext(ctx)
 	var id string
 
-	if ok && len(md["X-Request-ID"]) > 0 {
-		id = md["X-Request-ID"][0]
+	if ok && len(md[constants.HeaderRequestID]) > 0 {
+		id = md[constants.HeaderRequestID][0]
 	} else {
 		id = uuid.NewString()
 	}
 
-	header := metadata.Pairs("X-Request-ID", id)
+	header := metadata.Pairs(constants.HeaderRequestID, id)
 	grpc.SendHeader(ctx, header)
 
-	newCtx := context.WithValue(ctx, "X-Request-ID", id)
+	newCtx := context.WithValue(ctx, constants.HeaderRequestID, id)
 	return handler(newCtx, req)
 }

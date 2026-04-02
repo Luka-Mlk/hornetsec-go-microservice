@@ -6,6 +6,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 
@@ -19,9 +20,10 @@ func Run(ctx context.Context, wg *sync.WaitGroup, errChan chan<- error, mgr *doc
 	h.RegisterRoutes(mux)
 
 	handlers := h.Use(mux, WithRequestID)
+	addr := os.Getenv("HTTP_PORT")
 
 	srv := &http.Server{
-		Addr:    ":8080",
+		Addr:    ":" + addr,
 		Handler: handlers,
 	}
 

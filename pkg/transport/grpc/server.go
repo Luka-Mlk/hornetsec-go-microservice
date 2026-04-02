@@ -4,6 +4,7 @@ import (
 	"context"
 	"document-metadata/pkg/document"
 	"net"
+	"os"
 	"sync"
 
 	pb "document-metadata/gen/proto/document"
@@ -13,9 +14,14 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
+const (
+	protocol = "tcp"
+)
+
 func Run(ctx context.Context, wg *sync.WaitGroup, errChan chan<- error, mgr *document.Manager) {
 	defer wg.Done()
-	socket, err := net.Listen("tcp", ":9090")
+	addr := os.Getenv("GRPC_PORT")
+	socket, err := net.Listen(protocol, addr)
 	if err != nil {
 		errChan <- err
 		return
