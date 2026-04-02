@@ -20,7 +20,7 @@ const (
 
 func Run(ctx context.Context, wg *sync.WaitGroup, errChan chan<- error, mgr *document.Manager) {
 	defer wg.Done()
-	addr := os.Getenv("GRPC_PORT")
+	addr := ":" + os.Getenv("GRPC_PORT")
 	socket, err := net.Listen(protocol, addr)
 	if err != nil {
 		errChan <- err
