@@ -4,6 +4,7 @@ import (
 	"document-metadata/pkg/constants"
 	"document-metadata/pkg/document"
 	"encoding/json"
+	"errors"
 	"net/http"
 )
 
@@ -45,8 +46,12 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid request body", http.StatusBadRequest)
 		return
 	}
-	doc, err := h.mgr.Create(req.Name, req.Description)
+	doc, err := h.mgr.Create(r.Context(), req.Name, req.Description)
 	if err != nil {
+		if errors.Is(err, document.ErrInvalidName) {
+			http.Error(w, document.ErrInvalidName.Error(), http.StatusBadRequest)
+			return
+		}
 		http.Error(w, "failed to create document", http.StatusInternalServerError)
 		return
 	}
@@ -56,7 +61,7 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) list(w http.ResponseWriter, r *http.Request) {
-	doc, err := h.mgr.FindAll()
+	doc, err := h.mgr.FindAll(r.Context())
 	if err != nil {
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
@@ -67,7 +72,7 @@ func (h *Handler) list(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
-	doc, err := h.mgr.Get(id)
+	doc, err := h.mgr.Get(r.Context(), id)
 	if err != nil {
 		http.Error(w, "document not found", http.StatusNotFound)
 		return
@@ -78,7 +83,7 @@ func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
-	if err := h.mgr.Delete(id); err != nil {
+	if err := h.mgr.Delete(r.Context(), id); err != nil {
 		http.Error(w, "document not found", http.StatusNotFound)
 		return
 	}

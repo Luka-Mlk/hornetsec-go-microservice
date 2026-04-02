@@ -1,5 +1,14 @@
 package document
 
+import (
+	"context"
+	"errors"
+)
+
+var (
+	ErrInvalidName = errors.New("document name cannot be empty")
+)
+
 type Persistence interface {
 	Save(item Document) error
 	FindAll() ([]Document, error)
@@ -15,7 +24,10 @@ func NewManager(pers Persistence) *Manager {
 	return &Manager{pers: pers}
 }
 
-func (m *Manager) Create(name, description string) (Document, error) {
+func (m *Manager) Create(ctx context.Context, name, description string) (Document, error) {
+	if name == "" {
+		return Document{}, ErrInvalidName
+	}
 	doc, err := NewDocument(
 		WithName(name),
 		WithDescription(description),
@@ -29,14 +41,14 @@ func (m *Manager) Create(name, description string) (Document, error) {
 	return *doc, nil
 }
 
-func (m *Manager) Get(id string) (Document, error) {
+func (m *Manager) Get(ctx context.Context, id string) (Document, error) {
 	return m.pers.FindByID(id)
 }
 
-func (m *Manager) Delete(id string) error {
+func (m *Manager) Delete(ctx context.Context, id string) error {
 	return m.pers.Delete(id)
 }
 
-func (m *Manager) FindAll() ([]Document, error) {
+func (m *Manager) FindAll(ctx context.Context) ([]Document, error) {
 	return m.pers.FindAll()
 }
